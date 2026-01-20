@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trade Signal App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #050505;
+            --bg-card: #0a0b10;
+            --primary-blue: #2563eb;
+            --primary-gradient: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);
+            --secondary-bg: #11131f;
+            --text-white: #ffffff;
+            --text-gray: #9ca3af;
+            --border-color: #2e3546;
+            
+            --signal-green: #10b981;
+            --signal-red: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-white);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 380px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            font-weight: 800;
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 10px;
+            height: 50px;
+        }
+
+        .select-wrapper {
+            flex-grow: 1;
+            position: relative;
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+        }
+
+        .select-wrapper select {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            appearance: none;
+            outline: none;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        /* --- ИСПРАВЛЕНИЕ ДЛЯ ВЫПАДАЮЩЕГО СПИСКА --- */
+        select option {
+            background-color: var(--secondary-bg);
+            color: white;
+            padding: 10px;
+        }
+        /* ----------------------------------------- */
+
+        .arrow-icon {
+            position: absolute;
+            right: 15px;
+            pointer-events: none;
+            color: white;
+            font-size: 0.8rem;
+        }
+
+        .icon-btn {
+            width: 50px;
+            height: 50px;
+            background: var(--primary-blue);
+            border: none;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            color: white;
+            font-size: 1.2rem;
+            background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+        }
+
+        .info-box {
+            background: var(--secondary-bg);
+            border-radius: 16px;
+            padding: 30px 20px;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            border: 1px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .info-text-default {
+            font-size: 1rem;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        .result-content {
+            display: none;
+            width: 100%;
+        }
+        
+        .price-tag {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .signal-direction {
+            font-size: 1.5rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 8px 20px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .main-btn {
+            width: 100%;
+            padding: 20px;
+            border-radius: 16px;
+            border: none;
+            background: var(--primary-gradient);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4);
+            transition: transform 0.1s;
+        }
+
+        .main-btn:active {
+            transform: scale(0.98);
+        }
+
+        .main-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            filter: grayscale(0.5);
+        }
+
+        .signal-up { color: var(--signal-green); }
+        .bg-up { background: rgba(16, 185, 129, 0.15); }
+        .signal-down { color: var(--signal-red); }
+        .bg-down { background: rgba(239, 68, 68, 0.15); }
+
+        .glow-up {
+            border-color: var(--signal-green);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+        }
+
+        .glow-down {
+            border-color: var(--signal-red);
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <h1>TRADE SIGNAL</h1>
+
+        <div class="controls-row">
+            <div class="select-wrapper">
+                <select id="currencySelect">
+                    </select>
+                <div class="arrow-icon">▼</div>
+            </div>
+            
+            <button class="icon-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </button>
+            <button class="icon-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                </svg>
+            </button>
+        </div>
+
+        <div class="info-box" id="infoBox">
+            <div class="info-text-default" id="defaultText">
+                Нажмите кнопку 'Получить новый сигнал', чтобы начать
+            </div>
+
+            <div class="result-content" id="resultContent">
+                <div style="font-size: 0.9rem; color: #888; margin-bottom: 5px;">PRICE</div>
+                <div class="price-tag" id="priceValue">0.0000</div>
+                <div class="signal-direction" id="signalValue">WAITING</div>
+                <div style="margin-top: 15px; font-size: 0.8rem; opacity: 0.7;">RSI: <span id="rsiValue">0</span></div>
+            </div>
+        </div>
+
+        <button class="main-btn" onclick="fetchSignal()" id="actionBtn">
+            ПОЛУЧИТЬ НОВЫЙ СИГНАЛ
+        </button>
+    </div>
+
+<script>
+    // 1. Список валют
+    const rawPairs = [
+        "CADJPY", "CADCHF", "EURUSD", "AUDUSD", "USDJPY", "AUDJPY", 
+        "GBPAUD", "GBPCAD", "AUDCHF", "EURCAD", "EURJPY", "GBPUSD", 
+        "USDCHF", "EURGBP", "USDCAD", "EURCHF", "GBPCHF", "AUDCAD", "GBPJPY"
+    ];
+
+    // 2. Сортировка по алфавиту
+    const sortedPairs = rawPairs.sort();
+
+    // 3. Заполнение Select (ТЕПЕРЬ БЕЗ ФЛАГОВ И ЛИШНЕГО ТЕКСТА)
+    const select = document.getElementById('currencySelect');
+    
+    sortedPairs.forEach(pair => {
+        const option = document.createElement('option');
+        option.value = pair;
+        // Форматируем текст просто как EUR/USD
+        const niceName = pair.substring(0, 3) + '/' + pair.substring(3);
+        option.text = niceName;
+        select.appendChild(option);
+    });
+
+    if (sortedPairs.includes('EURUSD')) select.value = 'EURUSD';
+
+
+    // 4. Логика получения сигнала
+    async function fetchSignal() {
+        const pair = select.value;
+        const btn = document.getElementById('actionBtn');
+        const infoBox = document.getElementById('infoBox');
+        const defaultText = document.getElementById('defaultText');
+        const resultContent = document.getElementById('resultContent');
+        
+        const priceEl = document.getElementById('priceValue');
+        const signalEl = document.getElementById('signalValue');
+        const rsiEl = document.getElementById('rsiValue');
+
+        btn.disabled = true;
+        btn.innerText = "АНАЛИЗ РЫНКА...";
+        
+        infoBox.className = 'info-box'; 
+        defaultText.style.display = 'none';
+        resultContent.style.display = 'none';
+
+        try {
+            const response = await fetch(`https://afforrfsoxkge.com/signals-api/signal/3/${pair}`);
+            
+            if (!response.ok) throw new Error('API Error');
+            
+            const data = await response.json();
+
+            priceEl.innerText = data.price;
+            rsiEl.innerText = data.rsi;
+            
+            const sig = data.signal.toLowerCase();
+
+            resultContent.style.display = 'block';
+            
+            if (sig.includes('up') || sig.includes('buy')) {
+                signalEl.innerText = "BUY UP ⬆";
+                signalEl.className = "signal-direction bg-up signal-up";
+                priceEl.className = "price-tag signal-up";
+                infoBox.classList.add('glow-up');
+            } else {
+                signalEl.innerText = "SELL DOWN ⬇";
+                signalEl.className = "signal-direction bg-down signal-down";
+                priceEl.className = "price-tag signal-down";
+                infoBox.classList.add('glow-down');
+            }
+
+        } catch (error) {
+            defaultText.style.display = 'block';
+            defaultText.innerText = "Ошибка соединения. Попробуйте другую пару.";
+            console.error(error);
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "ПОЛУЧИТЬ НОВЫЙ СИГНАЛ";
+        }
+    }
+</script>
+
+</body>
+</html>
