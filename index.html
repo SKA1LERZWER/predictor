@@ -203,7 +203,6 @@
             box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
         }
 
-        /* Новые элементы для таймера и информации о сигнале */
         .signal-info-container {
             width: 100%;
             margin-top: 20px;
@@ -228,30 +227,36 @@
         }
 
         .timer-values {
-            font-size: 2.2rem;
-            font-weight: 800;
+            font-size: 1.8rem;
+            font-weight: 700;
             text-align: center;
             font-variant-numeric: tabular-nums;
-            margin: 10px 0;
         }
 
-        .time-remaining {
+        .time-elapsed {
             color: var(--text-white);
-            letter-spacing: 2px;
+        }
+
+        .time-separator {
+            margin: 0 5px;
+            color: var(--text-gray);
+        }
+
+        .time-total {
+            color: var(--text-gray);
         }
 
         .timer-bar {
-            height: 6px;
+            height: 4px;
             background: var(--border-color);
-            border-radius: 3px;
-            margin-top: 15px;
+            border-radius: 2px;
+            margin-top: 10px;
             overflow: hidden;
         }
 
         .timer-progress {
             height: 100%;
-            border-radius: 3px;
-            width: 100%;
+            border-radius: 2px;
             transition: width 1s linear;
         }
 
@@ -288,23 +293,12 @@
         }
 
         .until-time {
-            font-size: 1.1rem;
-            font-weight: 700;
+            font-size: 1rem;
+            font-weight: 600;
             color: var(--text-white);
             margin-top: 2px;
-            letter-spacing: 1px;
         }
 
-        .expiry-time {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 0.9rem;
-            color: var(--text-gray);
-            margin-top: 5px;
-        }
-
-        /* Модальные окна */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -445,6 +439,9 @@
         }
 
         .expiry-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
             background: var(--signal-yellow);
             color: black;
             font-size: 0.7rem;
@@ -458,15 +455,6 @@
             0% { opacity: 1; }
             50% { opacity: 0.7; }
             100% { opacity: 1; }
-        }
-
-        .timer-colon {
-            animation: blink 1s infinite;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
         }
     </style>
 </head>
@@ -500,7 +488,7 @@
             </button>
         </div>
 
-        <div class="infoBox" id="infoBox">
+        <div class="info-box" id="infoBox">
             <div class="info-text-default" id="defaultText">
                 Нажмите кнопку 'Получить новый сигнал', чтобы начать
             </div>
@@ -511,19 +499,16 @@
                 <div class="signal-direction" id="signalValue">WAITING</div>
                 <div style="margin-top: 15px; font-size: 0.8rem; opacity: 0.7;" id="rsiLabel">RSI: <span id="rsiValue">0</span></div>
                 
-                <!-- Новый блок с таймером и информацией о сигнале -->
                 <div class="signal-info-container" id="signalInfoContainer" style="display: none;">
                     <div class="timer-section">
                         <div class="timer-label" id="timerLabel">
                             <span>Время до конца</span>
-                            <span id="expiryIndicator" class="expiry-indicator" style="display: none;">Скоро истекает</span>
+                            <span id="expiryIndicator" class="expiry-indicator" style="display: none;">Скоро истечет</span>
                         </div>
                         <div class="timer-values">
-                            <span class="time-remaining" id="timeRemaining">--:--</span>
-                        </div>
-                        <div class="expiry-time">
-                            <span>Истекает в</span>
-                            <span class="until-time" id="expiryTime">--:--</span>
+                            <span class="time-elapsed" id="timeElapsed">03:00</span>
+                            <span class="time-separator">/</span>
+                            <span class="time-total" id="timeTotal">03:00</span>
                         </div>
                         <div class="timer-bar">
                             <div class="timer-progress" id="timerProgress"></div>
@@ -535,8 +520,8 @@
                         <div class="direction-details">
                             <div class="direction-text" id="directionText">Вниз</div>
                             <div class="direction-until">
-                                <div id="untilLabel">Действует</div>
-                                <div class="until-time" id="untilTime">до --:--</div>
+                                <div id="untilLabel">До</div>
+                                <div class="until-time" id="untilTime">--:--</div>
                             </div>
                         </div>
                     </div>
@@ -549,7 +534,6 @@
         </button>
     </div>
 
-    <!-- Модальное окно выбора таймфрейма -->
     <div class="modal-overlay" id="timeModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -577,7 +561,6 @@
         </div>
     </div>
 
-    <!-- Модальное окно выбора языка -->
     <div class="modal-overlay" id="langModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -598,7 +581,6 @@
     </div>
 
 <script>
-    // Локализация
     const translations = {
         ru: {
             appTitle: "TRADE SIGNAL",
@@ -616,11 +598,9 @@
             languageOptions: ["Русский", "English"],
             timerLabel: "Время до конца",
             directionLabel: "Направление",
-            untilLabel: "Действует",
-            expiryWarning: "Скоро истекает",
+            untilLabel: "До",
+            expiryWarning: "Скоро истечет",
             expiryText: "Истек",
-            expiresAt: "Истекает в",
-            untilText: "до",
             directionUp: "Вверх",
             directionDown: "Вниз"
         },
@@ -640,41 +620,33 @@
             languageOptions: ["Russian", "English"],
             timerLabel: "Time remaining",
             directionLabel: "Direction",
-            untilLabel: "Valid",
+            untilLabel: "Until",
             expiryWarning: "Expiring soon",
             expiryText: "Expired",
-            expiresAt: "Expires at",
-            untilText: "until",
             directionUp: "Up",
             directionDown: "Down"
         }
     };
 
-    // Настройки приложения
     let currentLanguage = 'ru';
-    let currentTimeframe = 3; // По умолчанию 3 минуты
+    let currentTimeframe = 3;
     let currentSignal = null;
     let countdownTimer = null;
     let signalEndTime = null;
 
-    // 1. Список валют
     const rawPairs = [
         "CADJPY", "CADCHF", "EURUSD", "AUDUSD", "USDJPY", "AUDJPY", 
         "GBPAUD", "GBPCAD", "AUDCHF", "EURCAD", "EURJPY", "GBPUSD", 
         "USDCHF", "EURGBP", "USDCAD", "EURCHF", "GBPCHF", "AUDCAD", "GBPJPY"
     ];
 
-    // 2. Инициализация приложения
     document.addEventListener('DOMContentLoaded', function() {
         initializeApp();
         setupEventListeners();
-        
-        // Устанавливаем 3 минуты по умолчанию
         selectTimeframe(3, true);
     });
 
     function initializeApp() {
-        // Заполнение валютных пар
         const sortedPairs = rawPairs.sort();
         const select = document.getElementById('currencySelect');
         
@@ -688,25 +660,22 @@
 
         if (sortedPairs.includes('EURUSD')) select.value = 'EURUSD';
         
-        // Обновление бейджей
         updateBadges();
-        
-        // Обновление текстов локализации
         updateLocalizedTexts();
+        
+        document.getElementById('timeTotal').textContent = formatTime(currentTimeframe * 60);
+        document.getElementById('timeElapsed').textContent = formatTime(currentTimeframe * 60);
     }
 
     function setupEventListeners() {
-        // Кнопка выбора таймфрейма
         document.getElementById('timeBtn').addEventListener('click', function() {
             openModal('timeModal');
         });
 
-        // Кнопка выбора языка
         document.getElementById('langBtn').addEventListener('click', function() {
             openModal('langModal');
         });
 
-        // Закрытие модальных окон при клике на оверлей
         document.querySelectorAll('.modal-overlay').forEach(modal => {
             modal.addEventListener('click', function(e) {
                 if (e.target === this) {
@@ -715,7 +684,6 @@
             });
         });
 
-        // Закрытие по Escape
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeModal('timeModal');
@@ -724,9 +692,7 @@
         });
     }
 
-    // Функции для работы с модальными окнами
     function openModal(modalId) {
-        // Обновляем состояние выбранных элементов в модальном окне перед открытием
         if (modalId === 'timeModal') {
             updateModalSelection('timeOptionsList', currentTimeframe.toString());
         } else if (modalId === 'langModal') {
@@ -742,7 +708,6 @@
         document.body.style.overflow = 'auto';
     }
 
-    // Обновление выбранного элемента в модальном окне
     function updateModalSelection(listId, selectedValue) {
         const list = document.getElementById(listId);
         const items = list.querySelectorAll('.option-item');
@@ -759,17 +724,15 @@
         });
     }
 
-    // Выбор таймфрейма
     function selectTimeframe(minutes, init = false) {
         currentTimeframe = minutes;
         
-        // Обновление выбранного элемента в модалке
         updateModalSelection('timeOptionsList', minutes.toString());
-        
-        // Обновление бейджа
         updateBadges();
         
-        // Если есть активный сигнал, обновляем с новым таймфреймом
+        document.getElementById('timeTotal').textContent = formatTime(minutes * 60);
+        document.getElementById('timeElapsed').textContent = formatTime(minutes * 60);
+        
         if (currentSignal && !init) {
             updateSignalWithNewTimeframe();
         }
@@ -779,27 +742,21 @@
         }
     }
 
-    // Выбор языка
     function selectLanguage(lang) {
         currentLanguage = lang;
         
-        // Обновление выбранного элемента в модалке
         updateModalSelection('langOptionsList', lang);
-        
-        // Обновление бейджа и текстов
         updateBadges();
         updateLocalizedTexts();
         
         closeModal('langModal');
     }
 
-    // Обновление бейджей
     function updateBadges() {
         document.getElementById('timeBadge').textContent = `${currentTimeframe}m`;
         document.getElementById('langBadge').textContent = currentLanguage.toUpperCase();
     }
 
-    // Обновление локализованных текстов
     function updateLocalizedTexts() {
         const t = translations[currentLanguage];
         
@@ -808,7 +765,6 @@
         document.getElementById('actionBtn').textContent = t.buttonText;
         document.getElementById('priceLabel').textContent = t.priceLabel;
         
-        // Обновляем RSI label
         const rsiLabel = document.getElementById('rsiLabel');
         const rsiValue = document.getElementById('rsiValue').textContent;
         rsiLabel.innerHTML = t.rsiLabel + ' <span id="rsiValue">' + rsiValue + '</span>';
@@ -821,11 +777,6 @@
         document.getElementById('untilLabel').textContent = t.untilLabel;
         document.getElementById('expiryIndicator').textContent = t.expiryWarning;
         
-        // Обновляем текст "Истекает в"
-        document.querySelector('.expiry-time span:first-child').textContent = t.expiresAt;
-        document.querySelector('#untilTime').textContent = `${t.untilText} --:--`;
-        
-        // Обновление текстов опций таймфреймов
         const timeOptions = document.querySelectorAll('#timeModal .option-item span:first-child');
         t.timeframeOptions.forEach((text, index) => {
             if (timeOptions[index]) {
@@ -833,7 +784,6 @@
             }
         });
         
-        // Обновление текстов опций языка
         const langOptions = document.querySelectorAll('#langModal .option-item span:first-child');
         t.languageOptions.forEach((text, index) => {
             if (langOptions[index]) {
@@ -841,20 +791,13 @@
             }
         });
         
-        // Обновление html lang атрибута
         document.getElementById('htmlLang').lang = currentLanguage;
         
-        // Обновление направления если есть активный сигнал
         if (currentSignal) {
             updateDirectionText();
-            // Обновляем время окончания
-            if (signalEndTime) {
-                updateExpiryTimeDisplay();
-            }
         }
     }
 
-    // Обновление текста направления
     function updateDirectionText() {
         const t = translations[currentLanguage];
         const directionText = document.getElementById('directionText');
@@ -871,161 +814,58 @@
         }
     }
 
-    // Получение текущего московского времени (UTC+3)
-    function getMoscowTime() {
-        const now = new Date();
-        // Москва UTC+3
-        // Получаем текущее время в UTC
-        const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
-        // Добавляем 3 часа для московского времени
-        const moscowTime = new Date(utcTime + (3 * 3600000));
-        return moscowTime;
-    }
-
-    // Расчет времени окончания сигнала (до следующей кратной минуты)
-    function calculateSignalEndTime() {
-        const now = getMoscowTime();
-        const currentMinutes = now.getMinutes();
-        const currentSeconds = now.getSeconds();
-        
-        // Получаем текущую минуту и секунды
-        console.log(`Текущее время МСК: ${now.getHours()}:${currentMinutes}:${currentSeconds}`);
-        
-        // Определяем, до какой минуты должен действовать сигнал
-        // Сигнал действует до наступления определенной минуты
-        // Например: если сейчас 22:10:30, то сигнал до 22:13 (не 22:13:30, а ровно 22:13:00)
-        
-        // Находим следующую минуту, кратной текущему таймфрейму от текущего часа
-        let targetMinute;
-        
-        // Получаем все возможные минуты для текущего таймфрейма
-        // Для 3 минут: 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 57
-        // Для 5 минут: 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55
-        // Для 7 минут: 0, 7, 14, 21, 28, 35, 42, 49, 56
-        // Для 10 минут: 0, 10, 20, 30, 40, 50
-        
-        // Находим следующую минуту, которая будет после текущей
-        const possibleMinutes = [];
-        for (let i = 0; i < 60; i += currentTimeframe) {
-            possibleMinutes.push(i);
-        }
-        
-        // Находим ближайшую будущую минуту
-        targetMinute = null;
-        for (let minute of possibleMinutes) {
-            if (minute > currentMinutes || 
-                (minute === currentMinutes && currentSeconds === 0)) {
-                targetMinute = minute;
-                break;
-            }
-        }
-        
-        // Если не нашли (текущая минута больше всех возможных), берем первую минуту следующего часа
-        if (targetMinute === null) {
-            targetMinute = possibleMinutes[0];
-            // Увеличиваем час
-            now.setHours(now.getHours() + 1);
-        }
-        
-        // Устанавливаем минуту и обнуляем секунды
-        now.setMinutes(targetMinute);
-        now.setSeconds(0);
-        now.setMilliseconds(0);
-        
-        // Если установленная минута меньше текущей (значит перешли на следующий час)
-        if (targetMinute <= currentMinutes && targetMinute !== currentMinutes) {
-            now.setHours(now.getHours() + 1);
-        }
-        
-        return now;
-    }
-
-    // Форматирование времени окончания
-    function updateExpiryTimeDisplay() {
-        const t = translations[currentLanguage];
-        if (signalEndTime) {
-            const expiryFormatted = formatTimeToHHMM(signalEndTime);
-            document.getElementById('expiryTime').textContent = expiryFormatted;
-            document.getElementById('untilTime').textContent = `${t.untilText} ${expiryFormatted}`;
-        }
-    }
-
-    // Обновление сигнала с новым таймфреймом
     function updateSignalWithNewTimeframe() {
-        console.log(`Updating signal with timeframe: ${currentTimeframe}m`);
-        
-        // Если есть активный таймер, останавливаем его
         if (countdownTimer) {
             clearInterval(countdownTimer);
             countdownTimer = null;
         }
         
-        // Перезапускаем таймер с новым временем
         if (currentSignal) {
             startCountdownTimer();
         }
     }
 
-    // Запуск таймера обратного отсчета
     function startCountdownTimer() {
-        // Очищаем предыдущий таймер
         if (countdownTimer) {
             clearInterval(countdownTimer);
         }
         
-        // Рассчитываем время окончания сигнала (до следующей кратной минуты)
-        signalEndTime = calculateSignalEndTime();
+        const totalSeconds = currentTimeframe * 60;
+        let remainingSeconds = totalSeconds;
         
-        console.log(`Сигнал действует до: ${signalEndTime.getHours()}:${signalEndTime.getMinutes()}`);
+        const now = new Date();
+        signalEndTime = new Date(now.getTime() + (remainingSeconds * 1000));
         
-        // Показываем блок с информацией о сигнале
         document.getElementById('signalInfoContainer').style.display = 'block';
+        document.getElementById('timeTotal').textContent = formatTime(totalSeconds);
+        document.getElementById('timeElapsed').textContent = formatTime(remainingSeconds);
+        document.getElementById('untilTime').textContent = formatTimeToHHMM(signalEndTime);
         
-        // Обновляем отображение времени окончания
-        updateExpiryTimeDisplay();
+        document.getElementById('timerProgress').style.width = '0%';
         
-        // Функция обновления таймера
         function updateTimer() {
-            const currentMoscowTime = getMoscowTime();
-            const remainingTime = signalEndTime.getTime() - currentMoscowTime.getTime();
-            const remainingSeconds = Math.max(0, Math.floor(remainingTime / 1000));
+            remainingSeconds--;
             
-            // Обновляем оставшееся время (обратный отсчет)
-            const timeText = formatTime(remainingSeconds);
-            const parts = timeText.split(':');
-            document.getElementById('timeRemaining').innerHTML = `${parts[0]}<span class="timer-colon">:</span>${parts[1]}`;
+            document.getElementById('timeElapsed').textContent = formatTime(remainingSeconds);
             
-            // Рассчитываем общую длительность сигнала в секундах
-            // Это разница между временем окончания и временем получения сигнала
-            const totalDuration = Math.floor((signalEndTime.getTime() - (signalEndTime.getTime() - (currentTimeframe * 60 * 1000))) / 1000);
-            const progressPercent = (remainingSeconds / totalDuration) * 100;
-            
-            // Обновляем прогресс-бар (от 100% до 0%)
+            const elapsedSeconds = totalSeconds - remainingSeconds;
+            const progressPercent = (elapsedSeconds / totalSeconds) * 100;
             document.getElementById('timerProgress').style.width = `${progressPercent}%`;
             
-            // Устанавливаем цвет прогресс-бара в зависимости от оставшегося времени
-            const timeElement = document.getElementById('timeRemaining');
             if (remainingSeconds <= 30) {
-                // Меньше 30 секунд - красный
                 document.getElementById('timerProgress').style.background = 'var(--signal-red)';
                 document.getElementById('expiryIndicator').style.display = 'inline-block';
-                timeElement.style.color = 'var(--signal-red)';
             } else if (remainingSeconds <= 60) {
-                // Меньше минуты - желтый
                 document.getElementById('timerProgress').style.background = 'var(--signal-yellow)';
                 document.getElementById('expiryIndicator').style.display = 'none';
-                timeElement.style.color = 'var(--signal-yellow)';
             } else {
-                // Больше минуты - цвет зависит от направления сигнала
                 const signalColor = currentSignal.signal.toLowerCase().includes('up') || 
                                    currentSignal.signal.toLowerCase().includes('buy') ?
                                    'var(--signal-green)' : 'var(--signal-red)';
                 document.getElementById('timerProgress').style.background = signalColor;
                 document.getElementById('expiryIndicator').style.display = 'none';
-                timeElement.style.color = 'var(--text-white)';
             }
             
-            // Если время истекло
             if (remainingSeconds <= 0) {
                 clearInterval(countdownTimer);
                 countdownTimer = null;
@@ -1033,31 +873,26 @@
                 document.getElementById('expiryIndicator').textContent = t.expiryText;
                 document.getElementById('expiryIndicator').style.display = 'inline-block';
                 document.getElementById('expiryIndicator').style.background = 'var(--signal-red)';
-                document.getElementById('timeRemaining').innerHTML = `00<span class="timer-colon">:</span>00`;
-                document.getElementById('timeRemaining').style.color = 'var(--signal-red)';
+                document.getElementById('timeElapsed').textContent = '00:00';
             }
         }
         
-        // Запускаем таймер
-        updateTimer(); // Первое обновление сразу
+        updateTimer();
         countdownTimer = setInterval(updateTimer, 1000);
     }
 
-    // Форматирование времени в MM:SS
     function formatTime(seconds) {
         const mins = Math.floor(seconds / 60);
         const secs = Math.floor(seconds % 60);
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
 
-    // Форматирование времени в ЧЧ:ММ
     function formatTimeToHHMM(date) {
         const hours = date.getHours().toString().padStart(2, '0');
         const minutes = date.getMinutes().toString().padStart(2, '0');
         return `${hours}:${minutes}`;
     }
 
-    // 4. Логика получения сигнала
     async function fetchSignal() {
         const pair = document.getElementById('currencySelect').value;
         const btn = document.getElementById('actionBtn');
@@ -1080,17 +915,14 @@
         resultContent.style.display = 'block';
         signalInfoContainer.style.display = 'none';
         
-        // Сбрасываем таймер
         if (countdownTimer) {
             clearInterval(countdownTimer);
             countdownTimer = null;
         }
         
-        // Скрываем индикатор истечения
         document.getElementById('expiryIndicator').style.display = 'none';
 
         try {
-            // Добавляем таймфрейм в запрос к API
             const timeframeParam = currentTimeframe;
             const response = await fetch(`https://afforrfsoxkge.com/signals-api/signal/${timeframeParam}/${pair}`);
             
@@ -1099,13 +931,11 @@
             const data = await response.json();
             currentSignal = data;
 
-            // Обновляем основную информацию
             priceEl.innerText = data.price;
             rsiEl.innerText = data.rsi;
             
             const sig = data.signal.toLowerCase();
 
-            // Обновляем направление
             updateDirectionText();
             
             if (sig.includes('up') || sig.includes('buy')) {
@@ -1113,20 +943,15 @@
                 signalEl.className = "signal-direction bg-up signal-up";
                 priceEl.className = "price-tag signal-up";
                 infoBox.classList.add('glow-up');
-                
-                // Устанавливаем цвет прогресс-бара
                 document.getElementById('timerProgress').style.background = 'var(--signal-green)';
             } else {
                 signalEl.innerText = t.sellSignal;
                 signalEl.className = "signal-direction bg-down signal-down";
                 priceEl.className = "price-tag signal-down";
                 infoBox.classList.add('glow-down');
-                
-                // Устанавливаем цвет прогресс-бара
                 document.getElementById('timerProgress').style.background = 'var(--signal-red)';
             }
 
-            // Запускаем таймер обратного отсчета
             startCountdownTimer();
 
         } catch (error) {
